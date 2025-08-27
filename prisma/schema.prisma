@@ -81,6 +81,7 @@ model Dish {
   checkins              Checkin[]
   photos                Photo[]
   lists                 UserList[]
+  trendMetrics          TrendMetric[]
 
   @@map("dishes")
 }
