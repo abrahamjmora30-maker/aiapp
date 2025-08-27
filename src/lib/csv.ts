@@ -12,6 +12,11 @@ export const DDDCsvRowSchema = z.object({
   season: z.string().optional(),
   episode: z.string().optional(),
   url: z.string().url().optional(),
+  address: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
 })
 
 export type DDDCsvRow = z.infer<typeof DDDCsvRowSchema>
