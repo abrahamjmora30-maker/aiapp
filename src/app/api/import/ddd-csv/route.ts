@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
     // Create import job
     const importJob = await db.importJob.create({
       data: {
-        status: 'queued',
-        source: 'USER_CSV',
-        note: `Importing ${rows.length} rows from DDD CSV`
+        filename: 'ddd-csv-import',
+        status: 'pending',
+        message: `Importing ${rows.length} rows from DDD CSV`
       }
     })
 
@@ -52,10 +52,13 @@ export async function POST(request: NextRequest) {
           restaurant = await db.restaurant.create({
             data: {
               name: row.restaurant,
+              slug: row.restaurant.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+              address: row.address || 'Unknown Address',
               city: row.city,
-              region: row.region,
-              country: row.country || 'USA',
-              tags: ['ddd-import']
+              state: row.state || 'Unknown',
+              zipCode: row.zipCode || '00000',
+              latitude: row.latitude ? parseFloat(row.latitude) : 0,
+              longitude: row.longitude ? parseFloat(row.longitude) : 0
             }
           })
           createdRestaurants++
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
         const existingSource = await db.venueSource.findFirst({
           where: {
             restaurantId: restaurant.id,
-            kind: 'DDD'
+            sourceType: 'ddd'
           }
         })
 
@@ -73,9 +76,8 @@ export async function POST(request: NextRequest) {
           await db.venueSource.create({
             data: {
               restaurantId: restaurant.id,
-              kind: 'DDD',
-              label: 'User CSV Import',
-              url: row.url
+              sourceType: 'ddd',
+              sourceName: 'User CSV Import'
             }
           })
         }
@@ -92,31 +94,37 @@ export async function POST(request: NextRequest) {
         if (!existingDish) {
           const tags = extractTags(row.dish, row.notes)
           
-          // Create dish with embedding
+          // Create dish
           const dish = await db.dish.create({
             data: {
               restaurantId: restaurant.id,
               name: row.dish,
+              slug: row.dish.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
               description: row.notes,
-              tags: [...tags, 'ddd'],
-              mustOrder: true, // DDD dishes are typically must-order
-              embedding: await createDishEmbedding(row.dish, tags)
+              tags: JSON.stringify([...tags, 'ddd'])
             }
           })
           createdDishes++
 
           // Create episode reference if show info is provided
           if (row.show || row.season || row.episode) {
-            await db.episodeRef.create({
-              data: {
+            const venueSource = await db.venueSource.findFirst({
+              where: {
                 restaurantId: restaurant.id,
-                dishId: dish.id,
-                show: row.show || 'DDD',
-                season: row.season ? parseInt(row.season) : null,
-                episode: row.episode ? parseInt(row.episode) : null,
-                note: row.notes
+                sourceType: 'ddd'
               }
             })
+            
+            if (venueSource) {
+              await db.episodeRef.create({
+                data: {
+                  venueSourceId: venueSource.id,
+                  episodeNumber: row.episode,
+                  seasonNumber: row.season,
+                  description: row.notes
+                }
+              })
+            }
           }
         }
       } catch (error) {
@@ -129,13 +137,8 @@ export async function POST(request: NextRequest) {
     await db.importJob.update({
       where: { id: importJob.id },
       data: {
-        status: errors.length > 0 ? 'failed' : 'done',
-        summary: {
-          totalRows: rows.length,
-          createdRestaurants,
-          createdDishes,
-          errors: errors.slice(0, 10) // Limit error messages
-        }
+        status: errors.length > 0 ? 'failed' : 'completed',
+        message: `Processed ${rows.length} rows. Created ${createdRestaurants} restaurants and ${createdDishes} dishes. ${errors.length} errors.`
       }
     })
 
