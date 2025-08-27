@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  reviews   Review[]
+  votes     Vote[]
+  checkins  Checkin[]
+  photos    Photo[]
+  lists     UserList[]
+
+  @@map("users")
+}
+
+model Restaurant {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  phone       String?
+  website     String?
+  latitude    Float
+  longitude   Float
+  priceLevel  Int      @default(1) // 1-4 scale
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  scoreCache  Float    @default(0) // Cached destination-worthy score
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  dishes      Dish[]
+  checkins    Checkin[]
+  photos      Photo[]
+  sources     VenueSource[]
+
+  @@map("restaurants")
+}
+
+model Dish {
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  description           String?
+  price                 Float?
+  category              String?
+  tags                  String   @default("[]") // JSON array of tags
+  photoUrl              String?
+  destinationWorthyScore Float   @default(0)
+  trendCache            Float    @default(0) // Cached trending score
+  voteCount             Int      @default(0)
+  reviewCount           Int      @default(0)
+  checkinCount          Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  restaurantId          String
+  restaurant            Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  reviews               Review[]
+  votes                 Vote[]
+  checkins              Checkin[]
+  photos                Photo[]
+  lists                 UserList[]
+
+  @@map("dishes")
+}
+
+model VenueSource {
+  id           String   @id @default(cuid())
+  sourceType   String   // "ddd", "tv_show", "magazine", etc.
+  sourceName   String
+  episodeTitle String?
+  episodeDate  DateTime?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  episodes     EpisodeRef[]
+
+  @@map("venue_sources")
+}
+
+model EpisodeRef {
+  id            String   @id @default(cuid())
+  episodeNumber String?
+  seasonNumber  String?
+  airDate       DateTime?
+  description   String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  venueSourceId String
+  venueSource   VenueSource @relation(fields: [venueSourceId], references: [id], onDelete: Cascade)
+
+  @@map("episode_refs")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 scale
+  text      String
+  summary   String?  // AI-generated summary
+  tags      String   @default("[]") // JSON array of AI-generated tags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dishId    String
+  dish      Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  value     Int      // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dishId    String
+  dish      Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dishId])
+  @@map("votes")
+}
+
+model Checkin {
+  id        String   @id @default(cuid())
+  note      String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  dishId    String?
+  dish      Dish? @relation(fields: [dishId], references: [id], onDelete: SetNull)
+
+  @@map("checkins")
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurantId String?
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  dishId    String?
+  dish      Dish? @relation(fields: [dishId], references: [id], onDelete: SetNull)
+
+  @@map("photos")
+}
+
+model ImportJob {
+  id        String   @id @default(cuid())
+  filename  String
+  status    String   // "pending", "processing", "completed", "failed"
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("import_jobs")
+}
+
+model TrendMetric {
+  id        String   @id @default(cuid())
+  metricType String  // "destination_worthy", "trending"
+  value     Float
+  date      DateTime @default(now())
+
+  // Relations
+  dishId    String
+  dish      Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@map("trend_metrics")
+}
+
+model UserList {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dishes      Dish[]
+
+  @@map("user_lists")
+}
+

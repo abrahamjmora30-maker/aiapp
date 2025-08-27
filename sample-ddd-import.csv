@@ -1,0 +1,6 @@
+restaurant,city,region,country,dish,notes,show,season,episode,url
+"Joe's Diner","Austin","TX","USA","Smashburger Deluxe","Juicy beef patty with caramelized onions and special sauce","DDD",15,8,"https://example.com/joe-diner"
+"BBQ Palace","Austin","TX","USA","Brisket Tacos","Slow-smoked brisket with house-made tortillas","DDD",12,3,"https://example.com/bbq-palace"
+"Pizza Heaven","Austin","TX","USA","Margherita Pizza","Classic Neapolitan style with fresh mozzarella","DDD",18,12,"https://example.com/pizza-heaven"
+"Taco Truck","Austin","TX","USA","Al Pastor Tacos","Marinated pork with pineapple and cilantro","DDD",20,5,"https://example.com/taco-truck"
+"Burger Joint","Austin","TX","USA","Double Cheeseburger","Two patties with American cheese and special sauce","DDD",16,9,"https://example.com/burger-joint"
