@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         user: {
           select: {
             name: true,
-            handle: true
+            email: true
           }
         }
       }
