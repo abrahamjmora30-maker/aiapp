@@ -37,6 +37,11 @@ export function formatRelativeTime(date: Date): string {
   return formatDate(date)
 }
 
+// Format distance (alias for formatRelativeTime for compatibility)
+export function formatDistance(date: Date): string {
+  return formatRelativeTime(date)
+}
+
 // Generate placeholder image URL
 export function getPlaceholderImage(width: number = 400, height: number = 300): string {
   return `https://via.placeholder.com/${width}x${height}/f3f4f6/6b7280?text=Food+Image`

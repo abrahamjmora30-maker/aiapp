@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         dishId,
         rating,
         text,
-        tags
+        tags: JSON.stringify(tags)
       },
       include: {
         user: {
