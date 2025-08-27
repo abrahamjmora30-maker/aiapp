@@ -35,8 +35,8 @@ interface DishCardProps {
       name: string
       city: string
       priceLevel?: number
-      lat?: number
-      lng?: number
+      latitude?: number
+      longitude?: number
     }
   }
   userLocation?: { lat: number; lng: number }
@@ -48,12 +48,12 @@ export function DishCard({ dish, userLocation, className }: DishCardProps) {
     ? dish.reviews.reduce((sum, r) => sum + r.rating, 0) / dish.reviews.length 
     : 0
 
-  const distance = userLocation && dish.restaurant.lat && dish.restaurant.lng
+  const distance = userLocation && dish.restaurant.latitude && dish.restaurant.longitude
     ? formatDistanceNumber(calculateDistance(
         userLocation.lat,
         userLocation.lng,
-        dish.restaurant.lat,
-        dish.restaurant.lng
+        dish.restaurant.latitude,
+        dish.restaurant.longitude
       ))
     : null
 

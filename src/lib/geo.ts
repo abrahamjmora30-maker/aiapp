@@ -31,8 +31,8 @@ export async function getNearbyRestaurants(
   // For production, consider using PostGIS or a geospatial database
   const restaurants = await db.restaurant.findMany({
     where: {
-      lat: { not: null },
-      lng: { not: null }
+      latitude: { not: null },
+      longitude: { not: null }
     },
     include: {
       dishes: {
@@ -49,7 +49,7 @@ export async function getNearbyRestaurants(
   return restaurants
     .map(restaurant => ({
       ...restaurant,
-      distance: calculateDistance(lat, lng, restaurant.lat!, restaurant.lng!)
+      distance: calculateDistance(lat, lng, restaurant.latitude!, restaurant.longitude!)
     }))
     .filter(restaurant => restaurant.distance <= radiusKm)
     .sort((a, b) => a.distance - b.distance)
