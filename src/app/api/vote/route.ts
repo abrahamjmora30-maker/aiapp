@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId,
           dishId,
-          weight: 1
+          value: 1
         }
       })
 
