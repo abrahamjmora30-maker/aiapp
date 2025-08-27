@@ -42,6 +42,14 @@ export function formatDistance(date: Date): string {
   return formatRelativeTime(date)
 }
 
+// Format distance number (for geographic distances)
+export function formatDistanceNumber(distance: number): string {
+  if (distance < 1) {
+    return `${Math.round(distance * 1000)}m`
+  }
+  return `${distance.toFixed(1)}km`
+}
+
 // Generate placeholder image URL
 export function getPlaceholderImage(width: number = 400, height: number = 300): string {
   return `https://via.placeholder.com/${width}x${height}/f3f4f6/6b7280?text=Food+Image`

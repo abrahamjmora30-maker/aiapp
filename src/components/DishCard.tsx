@@ -15,7 +15,7 @@ import {
   Heart,
   Share2
 } from 'lucide-react'
-import { cn, formatRating, formatDistance, getPlaceholderImage } from '@/lib/utils'
+import { cn, formatRating, formatDistanceNumber, getPlaceholderImage } from '@/lib/utils'
 
 interface DishCardProps {
   dish: {
@@ -49,7 +49,7 @@ export function DishCard({ dish, userLocation, className }: DishCardProps) {
     : 0
 
   const distance = userLocation && dish.restaurant.lat && dish.restaurant.lng
-    ? formatDistance(calculateDistance(
+    ? formatDistanceNumber(calculateDistance(
         userLocation.lat,
         userLocation.lng,
         dish.restaurant.lat,
